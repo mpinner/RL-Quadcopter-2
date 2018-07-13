@@ -143,7 +143,7 @@ class Actor:
 
         self.build_model()
 
-    def build_model(self):
+    def build_model(self, dropout_rate=0.5):
         """Build an actor (policy) network that maps states -> actions."""
 
         # Define input layer (states)
@@ -151,11 +151,14 @@ class Actor:
 
         # Add hidden layers
         net = layers.Dense(units=32, activation='relu')(states)
-        net = layers.BatchNormalization()(net)
+        #net = layers.BatchNormalization()(net)
+        net = layers.Dropout(dropout_rate)(net)
         net = layers.Dense(units=64, activation='relu')(net)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dense(units=128, activation='relu')(net)
-        net = layers.BatchNormalization()(net)
+        #net = layers.BatchNormalization()(net)
+        net = layers.Dropout(dropout_rate)(net)
+
+        #net = layers.Dense(units=128, activation='relu')(net)
+        #net = layers.BatchNormalization()(net)
         
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
