@@ -28,9 +28,9 @@ class Agent():
         self.actor_target.model.set_weights(self.actor.model.get_weights())
 
         # Noise process
-        self.noise_mean = 0.5
-        self.noise_decay = 0.2
-        self.noise_variance = 4
+        self.noise_mean = 0.0
+        self.noise_decay = 0.15
+        self.noise_variance = .2
         self.noise = OUNoise(self.action_size, self.noise_mean, self.noise_decay, self.noise_variance)
 
         # Replay memory

@@ -18,7 +18,7 @@ class Task():
         
         self.action_repeat = 3
         self.state_size = self.action_repeat * 6  # 6 states x 3 repeat = 18 
-        self.action_low = 450 # 0
+        self.action_low = 0 # 0
         self.action_high = 800 # 900
         
         #reduce the ation size, try 4
@@ -32,14 +32,19 @@ class Task():
         """Uses current pose of sim to return reward."""
         
         
-       # reward = 1.0 + 0.06 * abs(self.target_pos[2] - self.sim.pose[2])
+        reward = 1.0
+        
+        reward += 10.0 * (1.0 - (abs(self.target_pos[2] - self.sim.pose[2]) / self.target_pos[2]))
+       
+        reward += 0.1 * (1.0 - (abs(self.sim.pose[0:1] - self.target_pos[0:1]).sum() / 100))
+
         #- 0.04 * abs(self.sim.pose[0:1] - self.target_pos[0:1]).sum() - 0.02 * abs(self.sim.pose[3:6]).sum()
         
         #reward += (self.sim.pose[2])
 
         
-        reward = 1
-        reward += (self.sim.pose[2])
+        #reward = 1
+        #reward += (self.sim.pose[2])
         
        # reward += 1 * (1 - np.linalg.norm(self.sim.pose[:2] - [0., 0.]))
         #reward += 1 * (1 - np.linalg.norm(self.sim.pose[3:] - [0., 0., 0.]))
