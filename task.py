@@ -34,9 +34,11 @@ class Task():
         
         reward = 1.0
         
-        reward += 10.0 * (1.0 - (abs(self.target_pos[2] - self.sim.pose[2]) / self.target_pos[2]))
+        reward += 15.0 * (1.0 - (abs(self.target_pos[2] - self.sim.pose[2]) / self.target_pos[2]))
        
         reward += 0.1 * (1.0 - (abs(self.sim.pose[0:1] - self.target_pos[0:1]).sum() / 100))
+  
+        reward += 0.1 * (1.0 - (abs(self.sim.pose[3:6]).sum() / 100))
 
         #- 0.04 * abs(self.sim.pose[0:1] - self.target_pos[0:1]).sum() - 0.02 * abs(self.sim.pose[3:6]).sum()
         

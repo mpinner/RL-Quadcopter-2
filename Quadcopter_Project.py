@@ -195,7 +195,7 @@ print(task.sim.angular_v)
 # 
 # Run the code cell below to see how the agent performs on the sample task.
 
-# In[9]:
+# In[41]:
 
 
 import sys
@@ -234,7 +234,7 @@ for i_episode in range(1, num_episodes+1):
 # 
 # As you develop your agent, it's important to keep an eye on how it's performing. Use the code above as inspiration to build in a mechanism to log/save the total rewards obtained in each episode to file.  If the episode rewards are gradually increasing, this is an indication that your agent is learning.
 
-# In[10]:
+# In[45]:
 
 
 ## Train your agent here.
@@ -244,11 +244,12 @@ from agents.agent import Agent
 from agents.agent import Actor, Critic
 from task import Task
 
-num_episodes = 300
-target_pos = np.array([0., 0., 30.])
+num_episodes = 100
+target_pos = np.array([0., 0., 10.])
 task = Task(target_pos=target_pos)
 agent = Agent(task) 
-rewards = []
+
+
 for i_episode in range(1, num_episodes+1):
     state = agent.reset_episode() # start a new episode
     while True:
@@ -256,72 +257,25 @@ for i_episode in range(1, num_episodes+1):
         next_state, reward, done = task.step(action)
         agent.step(action,reward,next_state, done)
         state = next_state
+        
         if done:
-            rewards += [agent.get_score()]
             print("\rEpisode = {:4d}, score = {:7.3f} (best = {:7.3f})".format(
                 i_episode, agent.get_score(), agent.best_score), end="")  # [debug]
             break
     sys.stdout.flush()
 
 
-# In[11]:
+# In[21]:
 
 
 import keras
-
-
-# In[12]:
-
-
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-
-import csv
-import numpy as np
-from task import Task
-
-# Modify the values below to give the quadcopter a different starting position.
-runtime = 5.                                     # time limit of the episode
-init_pose = np.array([0., 0., 2., 0., 0., 0.])  # initial pose
-init_velocities = np.array([0., 0., 0.])         # initial velocities
-init_angle_velocities = np.array([0., 0., 0.])   # initial angle velocities
-file_output = 'data.txt'                         # file name for saved results
-
-# Setup
-task = Task(init_pose, init_velocities, init_angle_velocities, runtime)
-agent = Agent(task)
-done = False
-labels = ['time', 'x', 'y', 'z', 'phi', 'theta', 'psi', 'x_velocity',
-          'y_velocity', 'z_velocity', 'phi_velocity', 'theta_velocity',
-          'psi_velocity', 'rotor_speed1', 'rotor_speed2', 'rotor_speed3', 'rotor_speed4']
-results = {x : [] for x in labels}
-# Run the simulation, and save the results.
-with open(file_output, 'w') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(labels)
-    #for i_episode in range(1, num_episodes+1):
-    state = agent.reset_episode()
-    while True:
-        action = agent.act(state) 
-        next_state, reward, done = task.step(action)
-        agent.step(action,reward,next_state, done)
-        state = next_state
-        rotor_speeds = agent.act(state)
-        _, _, done = task.step(rotor_speeds)
-        print(task.sim.time)
-        to_write = [task.sim.time] + list(task.sim.pose) + list(task.sim.v) + list(task.sim.angular_v) + list(rotor_speeds)
-        for ii in range(len(labels)):
-            results[labels[ii]].append(to_write[ii])
-        writer.writerow(to_write)
-        if done:
-            break
 
 
 # ## Plot the Rewards
 # 
 # Once you are satisfied with your performance, plot the episode rewards, either from a single run, or averaged over multiple runs. 
 
-# In[13]:
+# In[118]:
 
 
 get_ipython().run_line_magic('load_ext', 'autoreload')
@@ -332,42 +286,59 @@ import numpy as np
 from task import Task
 
 # Modify the values below to give the quadcopter a different starting position.
-runtime = 5.                                     # time limit of the episode
-init_pose = np.array([0., 0., 2., 0., 0., 0.])  # initial pose
+runtime = 5                                     # time limit of the episode
+init_pose = np.array([0., 0., 10., 0., 0., 0.])  # initial pose
 init_velocities = np.array([0., 0., 0.])         # initial velocities
 init_angle_velocities = np.array([0., 0., 0.])   # initial angle velocities
 file_output = 'data.txt'                         # file name for saved results
 
+target_pos = np.array([0., 0., 30.])  # initial pose
+
+
 # Setup
-task = Task(init_pose, init_velocities, init_angle_velocities, runtime)
+task = Task(init_pose, init_velocities, init_angle_velocities, runtime, target_pos)
 agent = Agent(task)
 done = False
-labels = ['reward' + 'time', 'x', 'y', 'z', 'phi', 'theta', 'psi', 'x_velocity',
+labels = ['reward', 'time', 'x', 'y', 'z', 'phi', 'theta', 'psi', 'x_velocity',
           'y_velocity', 'z_velocity', 'phi_velocity', 'theta_velocity',
           'psi_velocity', 'rotor_speed1', 'rotor_speed2', 'rotor_speed3', 'rotor_speed4']
 results = {x : [] for x in labels}
+
+num_episodes = 1000
+
 # Run the simulation, and save the results.
 with open(file_output, 'w') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(labels)
-    #for i_episode in range(1, num_episodes+1):
-    state = agent.reset_episode()
-    while True:
-        action = agent.act(state) 
-        next_state, reward, done = task.step(action)
-        agent.step(action,reward,next_state, done)
-        state = next_state
-        rotor_speeds = agent.act(state)
-        _, _, done = task.step(rotor_speeds)
-        to_write = [reward] + [task.sim.time] + list(task.sim.pose) + list(task.sim.v) + list(task.sim.angular_v) + list(rotor_speeds)
-        for ii in range(len(labels)):
-            results[labels[ii]].append(to_write[ii])
-        writer.writerow(to_write)
-        if done:
-            break
+    for i_episode in range(1, num_episodes+1):
+        state = agent.reset_episode()
+        episode_reward = 0
+
+        while True:
+            action = agent.act(state) 
+            next_state, reward, done = task.step(action)
+            agent.step(action,reward,next_state, done)
+            state = next_state
+            rotor_speeds = agent.act(state)
+            _, _, done = task.step(rotor_speeds)
+            to_write = [reward] + [task.sim.time] + list(task.sim.pose) + list(task.sim.v) + list(task.sim.angular_v) + list(rotor_speeds)
+            for ii in range(len(labels)):
+                results[labels[ii]].append(to_write[ii])
+            writer.writerow(to_write)
+            episode_reward += reward
+            if done:
+            #    print("\rEpisode = {:4d}, score = {:7.3f} (best = {:7.3f})".format(
+            #        i_episode, agent.get_score(), agent.best_score), end="")  # [debug]
+                
+                print("\rEpisode = {:4d}, score = {:7.3f}, best = {:7.3f}, total = {:7.3f}"                    .format(i_episode, agent.get_score(), agent.best_score, episode_reward)
+                  , end=" ")
+                print(task.sim.pose[:3])
+            
+            
+                break
 
 
-# In[14]:
+# In[119]:
 
 
 import matplotlib.pyplot as plt
@@ -376,7 +347,7 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 plt.plot(results['time'], results['x'], label='x')
 plt.plot(results['time'], results['y'], label='y')
 plt.plot(results['time'], results['z'], label='z')
-plt.plot(results['time'], results['reward'], label='z')
+plt.plot(results['time'], results['reward'], label='reward')
 plt.legend()
 _ = plt.ylim()
 
@@ -384,7 +355,7 @@ _ = plt.ylim()
 
 
 
-# In[ ]:
+# In[120]:
 
 
 plt.plot(results['time'], results['x_velocity'], label='x_hat')
@@ -394,7 +365,7 @@ plt.legend()
 _ = plt.ylim()
 
 
-# In[ ]:
+# In[121]:
 
 
 
@@ -406,7 +377,7 @@ _ = plt.ylim()
 
 
 
-# In[ ]:
+# In[122]:
 
 
 plt.plot(results['time'], results['phi_velocity'], label='phi_velocity')
@@ -416,7 +387,7 @@ plt.legend()
 _ = plt.ylim()
 
 
-# In[ ]:
+# In[123]:
 
 
 plt.plot(results['time'], results['rotor_speed1'], label='Rotor 1 revolutions / second')
@@ -427,7 +398,7 @@ plt.legend()
 _ = plt.ylim()
 
 
-# In[ ]:
+# In[124]:
 
 
 # the pose, velocity, and angular velocity of the quadcopter at the end of the episode
@@ -445,7 +416,11 @@ print(task.sim.angular_v)
 # 
 
 # start at 10 high and move to hover at 30. the reward provides a reward for getting closer to 30
+# i tried a lot of different things for my reward.  keeping it below 1 by subtracting out when i wasn't near the height.  i tried making it huge with adding the velocities.
 # 
+# it was very difficult to keep it ever increasing.  
+# 
+# i experimented too much and things got very erractic
 
 # **Question 2**: Discuss your agent briefly, using the following questions as a guide:
 # 
@@ -461,7 +436,11 @@ print(task.sim.angular_v)
 # self.noise_decay = 0.2
 # self.noise_variance = 4
 # 
+# dropout = .5
+# 
 # i trained for 300 episode as the scores seemed to work there
+# 
+# I have a two dense layer network with relu and a dropout. 
 
 # **Question 3**: Using the episode rewards plot, discuss how the agent learned over time.
 # 
@@ -471,9 +450,26 @@ print(task.sim.angular_v)
 # 
 # **Answer**:
 
+# i suspect this should have been an easy task. it was hard.  
+# 
+#  my reward got very erratic and had trouble converging on the target height. 
+#  
+#  i had a few ahhha moments while experimenting with changing the reward to very high values.  getting the graphs working helped a lot to watch the results
+# 
+# 
+# tuning the noise and reward took a lot of trouble.  now i feel like it is too constained to be really practical
+# 
+# 
+# 
+
 # **Question 4**: Briefly summarize your experience working on this project. You can use the following prompts for ideas.
 # 
 # - What was the hardest part of the project? (e.g. getting started, plotting, specifying the task, etc.)
 # - Did you find anything interesting in how the quadcopter or your agent behaved?
 # 
 # **Answer**:
+
+# waiting for results is always hard. i never know whether to try making it faster somehow or im doing womsthing wrong.
+# 
+
+# i find the agent, task, critic sort of models and coding design very pleasing way to break down a problem.
