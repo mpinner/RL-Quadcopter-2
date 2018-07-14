@@ -18,8 +18,8 @@ class Task():
         
         self.action_repeat = 3
         self.state_size = self.action_repeat * 6  # 6 states x 3 repeat = 18 
-        self.action_low = 0 # 0
-        self.action_high = 800 # 900
+        self.action_low = 500 # 0
+        self.action_high = 850 # 900
         
         #reduce the ation size, try 4
         self.action_size = 4 
@@ -32,13 +32,26 @@ class Task():
         """Uses current pose of sim to return reward."""
         
         
+        
         reward = 1.0
         
-        reward += 15.0 * (1.0 - (abs(self.target_pos[2] - self.sim.pose[2]) / self.target_pos[2]))
+        reward += 5.0 - (abs(self.target_pos[2] - self.sim.pose[2]) / self.target_pos[2]) ** 0.4
        
-        reward += 0.1 * (1.0 - (abs(self.sim.pose[0:1] - self.target_pos[0:1]).sum() / 100))
+        reward -= .02 * abs(self.sim.pose[:2] - self.target_pos[:2]).sum()
+
+        reward -= .01 * abs(self.sim.pose[3:6]).sum()
+        
+        if self.target_pos[2] == self.sim.pose[2]:
+            reward += 100.0
   
-        reward += 0.1 * (1.0 - (abs(self.sim.pose[3:6]).sum() / 100))
+        
+        #reward = 1.0
+        
+        #reward += 15.0 * (1.0 - (abs(self.target_pos[2] - self.sim.pose[2]) / self.target_pos[2]))
+       
+        #reward += 0.1 * (1.0 - (abs(self.sim.pose[0:1] - self.target_pos[0:1]).sum() / 100))
+  
+        #reward += 0.1 * (1.0 - (abs(self.sim.pose[3:6]).sum() / 100))
 
         #- 0.04 * abs(self.sim.pose[0:1] - self.target_pos[0:1]).sum() - 0.02 * abs(self.sim.pose[3:6]).sum()
         

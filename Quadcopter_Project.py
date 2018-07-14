@@ -195,7 +195,7 @@ print(task.sim.angular_v)
 # 
 # Run the code cell below to see how the agent performs on the sample task.
 
-# In[41]:
+# In[9]:
 
 
 import sys
@@ -234,7 +234,7 @@ for i_episode in range(1, num_episodes+1):
 # 
 # As you develop your agent, it's important to keep an eye on how it's performing. Use the code above as inspiration to build in a mechanism to log/save the total rewards obtained in each episode to file.  If the episode rewards are gradually increasing, this is an indication that your agent is learning.
 
-# In[45]:
+# In[10]:
 
 
 ## Train your agent here.
@@ -265,7 +265,7 @@ for i_episode in range(1, num_episodes+1):
     sys.stdout.flush()
 
 
-# In[21]:
+# In[11]:
 
 
 import keras
@@ -275,7 +275,7 @@ import keras
 # 
 # Once you are satisfied with your performance, plot the episode rewards, either from a single run, or averaged over multiple runs. 
 
-# In[118]:
+# In[126]:
 
 
 get_ipython().run_line_magic('load_ext', 'autoreload')
@@ -292,7 +292,7 @@ init_velocities = np.array([0., 0., 0.])         # initial velocities
 init_angle_velocities = np.array([0., 0., 0.])   # initial angle velocities
 file_output = 'data.txt'                         # file name for saved results
 
-target_pos = np.array([0., 0., 30.])  # initial pose
+target_pos = np.array([0., 0., 30.])  # TARGET pose
 
 
 # Setup
@@ -303,6 +303,8 @@ labels = ['reward', 'time', 'x', 'y', 'z', 'phi', 'theta', 'psi', 'x_velocity',
           'y_velocity', 'z_velocity', 'phi_velocity', 'theta_velocity',
           'psi_velocity', 'rotor_speed1', 'rotor_speed2', 'rotor_speed3', 'rotor_speed4']
 results = {x : [] for x in labels}
+
+episodes = {x : [] for x in labels}
 
 num_episodes = 1000
 
@@ -323,22 +325,29 @@ with open(file_output, 'w') as csvfile:
             _, _, done = task.step(rotor_speeds)
             to_write = [reward] + [task.sim.time] + list(task.sim.pose) + list(task.sim.v) + list(task.sim.angular_v) + list(rotor_speeds)
             for ii in range(len(labels)):
-                results[labels[ii]].append(to_write[ii])
-            writer.writerow(to_write)
+                episodes[labels[ii]].append(to_write[ii])
+
+            if i_episode == num_episodes :
+                for ii in range(len(labels)):
+                    results[labels[ii]].append(to_write[ii])
+                writer.writerow(to_write)
+            
+            
+           
+            
             episode_reward += reward
             if done:
             #    print("\rEpisode = {:4d}, score = {:7.3f} (best = {:7.3f})".format(
             #        i_episode, agent.get_score(), agent.best_score), end="")  # [debug]
                 
-                print("\rEpisode = {:4d}, score = {:7.3f}, best = {:7.3f}, total = {:7.3f}"                    .format(i_episode, agent.get_score(), agent.best_score, episode_reward)
-                  , end=" ")
+                print("\rEpisode = {:4d}, score = {:7.3f}, best = {:7.3f}, total = {:7.3f}"                    .format(i_episode, agent.get_score(), agent.best_score, episode_reward), end=" ")
                 print(task.sim.pose[:3])
             
             
                 break
 
 
-# In[119]:
+# In[127]:
 
 
 import matplotlib.pyplot as plt
@@ -348,6 +357,20 @@ plt.plot(results['time'], results['x'], label='x')
 plt.plot(results['time'], results['y'], label='y')
 plt.plot(results['time'], results['z'], label='z')
 plt.plot(results['time'], results['reward'], label='reward')
+
+
+
+plt.legend()
+_ = plt.ylim()
+
+
+# In[128]:
+
+
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+plt.plot(episodes['reward'], label='reward')
 plt.legend()
 _ = plt.ylim()
 
@@ -355,7 +378,7 @@ _ = plt.ylim()
 
 
 
-# In[120]:
+# In[129]:
 
 
 plt.plot(results['time'], results['x_velocity'], label='x_hat')
@@ -365,7 +388,7 @@ plt.legend()
 _ = plt.ylim()
 
 
-# In[121]:
+# In[130]:
 
 
 
@@ -377,7 +400,7 @@ _ = plt.ylim()
 
 
 
-# In[122]:
+# In[131]:
 
 
 plt.plot(results['time'], results['phi_velocity'], label='phi_velocity')
@@ -387,7 +410,7 @@ plt.legend()
 _ = plt.ylim()
 
 
-# In[123]:
+# In[132]:
 
 
 plt.plot(results['time'], results['rotor_speed1'], label='Rotor 1 revolutions / second')
@@ -398,7 +421,7 @@ plt.legend()
 _ = plt.ylim()
 
 
-# In[124]:
+# In[133]:
 
 
 # the pose, velocity, and angular velocity of the quadcopter at the end of the episode
@@ -469,7 +492,9 @@ print(task.sim.angular_v)
 # 
 # **Answer**:
 
-# waiting for results is always hard. i never know whether to try making it faster somehow or im doing womsthing wrong.
+# the experience of shaping the reward and watching the reward grow during smaller numbers of episodes gives a pretty good idea of how well it is training. 
+# 
+# when i was satisfied it was continually growing, i set the episode count high and let it fly.
 # 
 
 # i find the agent, task, critic sort of models and coding design very pleasing way to break down a problem.
